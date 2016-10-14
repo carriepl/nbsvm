@@ -34,7 +34,7 @@ make
 cd ..
 
 echo "BI-GRAM";
-python ../nbsvm/nbsvm.py --liblinear liblinear-1.96 --ptrain data/train-pos.txt --ntrain data/train-neg.txt --ptest data/test-pos.txt --ntest data/test-neg.txt --ngram 12 --out NBSVM-TEST-BIGRAM
+python ../nbsvm/nbsvm.py --liblinear liblinear-1.96 --ptrain data/train-pos.txt --ntrain data/train-neg.txt --ptest data/test-pos.txt --ntest data/test-neg.txt --ngram 12 --out NBSVM-TEST-BIGRAM --train_labels=1.0
 echo "TRI-GRAM";
-python ../nbsvm/nbsvm.py --liblinear liblinear-1.96 --ptrain data/train-pos.txt --ntrain data/train-neg.txt --ptest data/test-pos.txt --ntest data/test-neg.txt --ngram 123 --out NBSVM-TEST-TRIGRAM
+python ../nbsvm/nbsvm.py --liblinear liblinear-1.96 --ptrain data/train-pos.txt --ntrain data/train-neg.txt --ptest data/test-pos.txt --ntest data/test-neg.txt --ngram 123 --out NBSVM-TEST-TRIGRAM --train_labels=1.0
 cd ../nbsvm
