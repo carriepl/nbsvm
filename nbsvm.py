@@ -18,10 +18,23 @@ def build_dict(f, grams):
         dic.update(tokenize(sentence, grams))
     return dic
 
-def process_files(file_pos, file_neg, dic, r, outfn, grams):
+def process_files(file_pos, file_neg, dic, r, outfn, grams, keep_labels):
     output = []
     for beg_line, f in zip(["1", "-1"], [file_pos, file_neg]):
-        for l in open(f).xreadlines():
+        lines = open(f).readlines()
+        
+        # Decide which training examples to keep, in a proportion equal to
+        # keep_labels.
+        nb_keep = int(len(lines) * keep_labels)
+        nb_discard = len(lines) - nb_keep
+        keep_indices = [1] * nb_keep + [0] * nb_discard
+        np.random.seed(0)
+        np.random.shuffle(keep_indices)
+        
+        for l, keep_example in zip(lines, keep_indices):
+            if not keep_example:
+                continue
+
             tokens = tokenize(l, grams)
             indexes = []
             for t in tokens:
@@ -54,16 +67,17 @@ def compute_ratio(poscounts, negcounts, alpha=1):
     r = np.log(p/q)
     return dic, r
  
-def main(ptrain, ntrain, ptest, ntest, out, liblinear, ngram):
+def main(ptrain, ntrain, ptest, ntest, out, liblinear, ngram, train_labels=1.0):
     ngram = [int(i) for i in ngram]
     print "counting..."
     poscounts = build_dict(ptrain, ngram)         
-    negcounts = build_dict(ntrain, ngram)         
+    negcounts = build_dict(ntrain, ngram)     
     
     dic, r = compute_ratio(poscounts, negcounts)
     print "processing files..."
-    process_files(ptrain, ntrain, dic, r, "train-nbsvm.txt", ngram)
-    process_files(ptest, ntest, dic, r, "test-nbsvm.txt", ngram)
+    train_labels = float(train_labels)
+    process_files(ptrain, ntrain, dic, r, "train-nbsvm.txt", ngram, train_labels)
+    process_files(ptest, ntest, dic, r, "test-nbsvm.txt", ngram, 1.0)
     
     trainsvm = os.path.join(liblinear, "train") 
     predictsvm = os.path.join(liblinear, "predict") 
@@ -91,6 +105,7 @@ if __name__ == "__main__":
     parser.add_argument('--ntest', help='path of the text file TEST NEGATIVE')
     parser.add_argument('--out', help='path and fileename for score output')
     parser.add_argument('--ngram', help='N-grams considered e.g. 123 is uni+bi+tri-grams')
+    parser.add_argument('--train_labels', help='fraction (float) of training labels to keep')
     args = vars(parser.parse_args())
 
     main(**args)
